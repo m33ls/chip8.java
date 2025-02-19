@@ -113,4 +113,39 @@ public class Chip8
 	private void log() {}
 
 	public void emulateCycle() {}
+
+	private void op_00e0() {}
+	private void op_00ee() {}
+	private void op_1nnn() {}
+	private void op_2nnn(int nnn) {}
+	private void op_3xkk(int x, int kk) {}
+	private void op_4xkk(int x, int kk) {}
+	private void op_5xy0(int x, int y) {}
+	private void op_6xkk(int x, int kk) {}
+	private void op_7xkk(int x, int kk) {}
+	private void op_8xy0(int x, int y) {}
+	private void op_8xy1(int x, int y) {}
+	private void op_8xy2(int x, int y) {}
+	private void op_8xy3(int x, int y) {}
+	private void op_8xy4(int x, int y) {}
+	private void op_8xy5(int x, int y) {}
+	private void op_8xy6(int x, int y) {}
+	private void op_8xy7(int x, int y) {}
+	private void op_8xye(int x, int y) {}
+	private void op_9xy0(int x, int y) {}
+	private void op_annn(int nnn) {}
+	private void op_bnnn(int nnn) {}
+	private void op_cxkk(int x, int kk) {}
+	private void op_dxyn(int x, int y, int n) {}
+	private void op_ex9e(int x) {}
+	private void op_exa1(int x) {}
+	private void op_fx07(int x) {}
+	private void op_fx0a(int x) {}
+	private void op_fx15(int x) {}
+	private void op_fx18(int x) {}
+	private void op_fx1e(int x) {}
+	private void op_fx29(int x) {}
+	private void op_fx33(int x) {}
+	private void op_fx55(int x) {}
+	private void op_fx65(int x) {}
 }

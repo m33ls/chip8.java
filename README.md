@@ -1,6 +1,6 @@
 # chip8.java
 
-Chip8 emulator rewrite in java
+Chip8 emulator rewrite in Java
 
 ## Build
 ```sh
