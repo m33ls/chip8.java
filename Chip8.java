@@ -4,6 +4,7 @@
  */
 
 import java.util.Arrays;
+import java.util.Random;
 
 public class Chip8
 {
@@ -17,12 +18,12 @@ public class Chip8
 	int sp;
 	int delay_timer;
 	int sound_timer;
-	boolean draw_flag;
 	int[] v = new int[16];
 	int[] key = new int[16];
 	int[] memory = new int[4096];		
 	int[][] gfx = new int[32][64]; // gfx[rows][columns] or gfx[x][y]
 	int[] stack = new int[16];     // (opposite of rust: gfx[y][x])
+	boolean draw_flag;
 
 	/*
 	 * Create a new Chip8 instance with default values
@@ -118,21 +119,32 @@ public class Chip8
 	 * CLS
 	 * Clear the display.
 	 */
-	private void op_00e0() {}
+	private void op_00e0() {
+		for (int i = 0; i < gfx.length; i++) {
+			Arrays.fill(gfx[i], 0);
+		}
+		draw_flag = true;
+		pc += 2;
+	}
 	/*
 	 * RET
 	 * Return from a subroutine.
 	 * The interpreter sets the program counter to the address at the top of the 
 	 * stack, then subtracts 1 from the stack pointer.
 	 */
-	private void op_00ee() {}
+	private void op_00ee() {
+		sp -= 1;
+		pc = stack[sp];
+	}
 	/*
 	 * JP addr
 	 * Jump to the location nnn.
 	 * The interpreter sets the program counter to nnn.
 	 * @param nnn
 	 */
-	private void op_1nnn(int nnn) {}
+	private void op_1nnn(int nnn) {
+		pc = nnn;
+	}
 	/*
 	 * CALL addr
 	 * Call subroutine at nnn.
@@ -140,7 +152,11 @@ public class Chip8
 	 * the top of the stack. The PC is then set to nnn.
 	 * @param nnn
 	 */
-	private void op_2nnn(int nnn) {}
+	private void op_2nnn(int nnn) {
+		stack[sp] = pc + 2;
+		sp += 1;
+		pc = nnn;
+	}
 	/*
 	 * SE Vx, byte
 	 * Skip next instruction if Vx = kk.
@@ -149,7 +165,13 @@ public class Chip8
 	 * @param x
 	 * @ param kk
 	 */
-	private void op_3xkk(int x, int kk) {}
+	private void op_3xkk(int x, int kk) {
+		if (v[x] == kk) {
+			pc += 4;
+		} else {
+			pc += 2;
+		}
+	}
 	/*
 	 * SNE Vx, byte
 	 * Skip next instruction if Vx != kk.
@@ -158,7 +180,13 @@ public class Chip8
 	 * @param x
 	 * @param kk
 	 */
-	private void op_4xkk(int x, int kk) {}
+	private void op_4xkk(int x, int kk) {
+		if (v[x] != kk) {
+			pc += 4;
+		} else {
+			pc += 2;
+		}
+	}
 	/*
 	 * SE Vx, Vy
 	 * Skip next instruction if Vx = Vy.
@@ -167,7 +195,13 @@ public class Chip8
 	 * @param x
 	 * @param y
 	 */
-	private void op_5xy0(int x, int y) {}
+	private void op_5xy0(int x, int y) {
+		if (v[x] == v[y]) {
+			pc += 4;
+		} else {
+			pc += 2;
+		}
+	}
 	/*
 	 * LD Vx, byte
 	 * Set Vx = kk.
@@ -175,7 +209,10 @@ public class Chip8
 	 * @param x
 	 * @param kk
 	 */
-	private void op_6xkk(int x, int kk) {}
+	private void op_6xkk(int x, int kk) {
+		v[x] = kk;
+		pc += 2;
+	}
 	/*
 	 * ADD Vx, byte
 	 * Set Vx = Vx + kk.
@@ -184,7 +221,10 @@ public class Chip8
 	 * @param x
 	 * @param kk
 	 */
-	private void op_7xkk(int x, int kk) {}
+	private void op_7xkk(int x, int kk) {
+		v[x] = v[x] + kk;
+		pc += 2;
+	}
 	/*
 	 * LD Vx, Vy
 	 * Set Vx = Vy.
@@ -192,7 +232,10 @@ public class Chip8
 	 * @param x
 	 * @param y
 	 */
-	private void op_8xy0(int x, int y) {}
+	private void op_8xy0(int x, int y) {
+		v[x] = v[y];
+		pc += 2;
+	}
 	/*
 	 * OR Vx, Vy
 	 * Set Vx = Vx OR Vy.
@@ -203,7 +246,10 @@ public class Chip8
 	 * @param x
 	 * @param y
 	 */
-	private void op_8xy1(int x, int y) {}
+	private void op_8xy1(int x, int y) {
+		v[x] = v[x] | v[y];
+		pc += 2;
+	}
 	/*
 	 * AND Vx, Vy
 	 * Set Vx = Vx AND Vy.
@@ -214,7 +260,10 @@ public class Chip8
 	 * @param x
 	 * @param y
 	 */
-	private void op_8xy2(int x, int y) {}
+	private void op_8xy2(int x, int y) {
+		v[x] = v[x] & v[y];
+		pc += 2;
+	}
 	/*
 	 * XOR Vx, Vy
 	 * Set Vx = Vx XOR Vy.
@@ -226,7 +275,10 @@ public class Chip8
 	 * @param x
 	 * @param y
 	 */
-	private void op_8xy3(int x, int y) {}
+	private void op_8xy3(int x, int y) {
+		v[x] = v[x] ^ v[y];
+		pc += 2;
+	}
 	/*
 	 * ADD Vx, Vy
 	 * Set Vx = Vx + Vy, set VF = carry
@@ -236,7 +288,17 @@ public class Chip8
 	 * @param x
 	 * @param y
 	 */
-	private void op_8xy4(int x, int y) {}
+	private void op_8xy4(int x, int y) {
+		int result = v[x] + v[y];
+		v[x] = result;
+
+		if (result > 0xFF) {
+			v[0xF] = 1;
+		} else {
+			v[0xF] = 0;
+		}
+		pc += 2;
+	}
 	/*
 	 * SUB Vx, Vy
 	 * Set Vx = Vx - Vy, set VF = NOT borrow.
@@ -245,7 +307,15 @@ public class Chip8
 	 * @param x
 	 * @param y
 	 */
-	private void op_8xy5(int x, int y) {}
+	private void op_8xy5(int x, int y) {
+		if (v[x] > v[y]) {
+			v[0xF] = 1;
+		} else {
+			v[0xF] = 0;
+		}
+		v[x] -= v[y];
+		pc += 2;
+	}
 	/*
 	 * SHR Vx {, Vy}
 	 * Set Vx = Vx SHR 1.
@@ -254,7 +324,11 @@ public class Chip8
 	 * @param x
 	 * @param y
 	 */
-	private void op_8xy6(int x, int y) {}
+	private void op_8xy6(int x, int y) {
+		v[0xF] = v[x] & 1;
+		v[x] >>= 1;
+		pc += 2;
+	}
 	/*
 	 * SUBN Vx, Vy
 	 * Set Vx = Vy - Vx, set VF = NOT borrow
@@ -263,7 +337,15 @@ public class Chip8
 	 * @param x
 	 * @param y
 	 */
-	private void op_8xy7(int x, int y) {}
+	private void op_8xy7(int x, int y) {
+		if (v[y] > v[x]) {
+			v[0xF] = 1;
+		} else {
+			v[0xF] = 0;
+		}
+		v[x] = v[y] - v[x];
+		pc += 2;
+	}
 	/*
 	 * SHL Vx {, Vy}
 	 * Set Vx = Vx SHL 1.
@@ -272,7 +354,11 @@ public class Chip8
 	 * @param x
 	 * @param y
 	 */
-	private void op_8xye(int x, int y) {}
+	private void op_8xye(int x, int y) {
+		v[0xF] = (v[x] & 0x80) >> 7;
+		v[x] <<= 1;
+		pc += 2;
+	}
 	/*
 	 * SNE Vx, Vy
 	 * Skip next instruction if Vx != Vy.
@@ -281,21 +367,32 @@ public class Chip8
 	 * @param x
 	 * @param y
 	 */
-	private void op_9xy0(int x, int y) {}
+	private void op_9xy0(int x, int y) {
+		if (v[x] != v[y] >> 4) {
+			pc += 4;
+		} else {
+			pc += 2;
+		}
+	}
 	/*
 	 * LD I, addr
 	 * Set I = nnn.
 	 * The value of register I is set to nnn.
 	 * @param nnn
 	 */
-	private void op_annn(int nnn) {}
+	private void op_annn(int nnn) {
+		i = nnn;
+		pc += 2;
+	}
 	/*
 	 * JP V0, addr
 	 * Jump to location nnn + V0
 	 * The program counter is set to nnn plus the value of V0.
 	 * @param nnn
 	 */
-	private void op_bnnn(int nnn) {}
+	private void op_bnnn(int nnn) {
+		pc = nnn + v[0];
+	}
 	/*
 	 * RND Vx, byte
 	 * Set Vx = random byte AND kk.
@@ -304,7 +401,11 @@ public class Chip8
 	 * @param x
 	 * @param kk
 	 */
-	private void op_cxkk(int x, int kk) {}
+	private void op_cxkk(int x, int kk) {
+		Random random = new Random();
+		v[x] = random.nextInt(256) & kk;
+		pc += 2;
+	}
 	/*
 	 * DRW Vx, Vy, nibble
 	 * Display n-byte sprite starting at memory location I at (Vx, Vy), 
@@ -320,7 +421,19 @@ public class Chip8
 	 * @param y
 	 * @param n
 	 */
-	private void op_dxyn(int x, int y, int n) {}
+	private void op_dxyn(int x, int y, int n) {
+		v[0xF] = 0;
+
+		for (int bytevar = 0; bytevar < n; bytevar++) {
+			int dxyn_y = (v[y] + bytevar) % 32;
+			for (int bit = 0; bit < 8; bit++) {
+				int dxyn_x = (v[x] + bit) % 64;
+				int color = (memory[(i + bytevar)] >> (7 - bit)) & 1;
+				v[0xF] |= color & gfx[dxyn_x][dxyn_y];
+				gfx[dxyn_x][dxyn_y] ^= color;
+			}
+		}
+	}
 	/*
 	 * SKP Vx
 	 * Skip next instruction if key with the value of Vx is pressed.
@@ -328,7 +441,13 @@ public class Chip8
 	 * is currently in the down position, PC is increased by 2.
 	 * @param x
 	 */
-	private void op_ex9e(int x) {}
+	private void op_ex9e(int x) {
+		if (key[v[x]] == 1) {
+			pc += 4;
+		} else {
+			pc += 2;
+		}
+	}
 	/*
 	 * SKNP Vx
 	 * Skip next instruction if key with the value of Vx is not pressed.
@@ -336,14 +455,23 @@ public class Chip8
 	 * currently in the up position, PC is increased by 2.
 	 * @param x
 	 */
-	private void op_exa1(int x) {}
+	private void op_exa1(int x) {
+		if (key[v[x]] != 1) {
+			pc += 4;
+		} else {
+			pc += 2;
+		}
+	}
 	/*
 	 * LD Vx, DT
 	 * Set Vx = delay timer value.
 	 * The value of DT is placed into Vx.
 	 * @param x
 	 */
-	private void op_fx07(int x) {}
+	private void op_fx07(int x) {
+		v[x] = delay_timer;
+		pc += 2;
+	}
 	/*
 	 * LD Vx, K
 	 * Wait for a key press, store the value of the key in Vx.
@@ -351,28 +479,49 @@ public class Chip8
 	 * is stored in Vx.
 	 * @param x
 	 */
-	private void op_fx0a(int x) {}
+	private void op_fx0a(int x) {
+		boolean empty = true;
+		for (int i = 0; i < 15; i++) {
+			if (key[i] != 0) {
+				v[x] = i;
+				empty = false;
+			}
+		}
+
+		if (empty != true) {
+			pc += 2;
+		}
+	}
 	/* 
 	 * LD DT, Vx
 	 * Set delay timer = Vx.
 	 * DT is set equal to the value of Vx.
 	 * @param x
 	 */
-	private void op_fx15(int x) {}
+	private void op_fx15(int x) {
+		delay_timer = v[x];
+		pc += 2;
+	}
 	/*
 	 * LD ST, Vx
 	 * Set sound timer = Vx.
 	 * ST is set equal to the value of Vx.
 	 * @param x
 	 */
-	private void op_fx18(int x) {}
+	private void op_fx18(int x) {
+		sound_timer = v[x];
+		pc += 2;
+	}
 	/*
 	 * ADD I, Vx
 	 * Set I = I + Vx.
 	 * The values of I and Vx are added, and the results are stored in I.
 	 * @param x
 	 */
-	private void op_fx1e(int x) {}
+	private void op_fx1e(int x) {
+		i += v[x];
+		pc += 2;
+	}
 	/*
 	 * LD F, Vx
 	 * Set I = location of sprite for digit Vx.
@@ -380,7 +529,10 @@ public class Chip8
 	 * to the value of Vx.
 	 * @param x
 	 */
-	private void op_fx29(int x) {}
+	private void op_fx29(int x) {
+		i = v[x] * 5;
+		pc += 2;
+	}
 	/*
 	 * LD B, Vx
 	 * Store BCD representation of Vx in memory locations I, I+1, and I+2
@@ -389,7 +541,12 @@ public class Chip8
 	 * ones digit at location I+2.
 	 * @param x
 	 */
-	private void op_fx33(int x) {}
+	private void op_fx33(int x) {
+		memory[i] = v[x] / 100;
+		memory[(i + 1)] = (v[x] / 10) % 10;
+		memory[(i + 2)] = (v[x] % 100) % 100;
+		pc += 2;
+	}
 	/*
 	 * LD [I], Vx
 	 * Store registers V0 through Vx in memory starting at location I.
@@ -397,7 +554,12 @@ public class Chip8
 	 * starting at the address in I
 	 * @param x
 	 */
-	private void op_fx55(int x) {}
+	private void op_fx55(int x) {
+		for (int i = 0; i < x; i++) {
+			memory[this.i + i] = v[i];
+		}
+		pc += 2;
+	}
 	/*
 	 * LD Vx, [I]
 	 * Read registers V0 through Vx from memory starting at location I.
@@ -405,5 +567,10 @@ public class Chip8
 	 * registers V0 through Vx.
 	 * @param x
 	 */
-	private void op_fx65(int x) {}
+	private void op_fx65(int x) {
+		for (int i = 0; i < x; i++) {
+			v[i] = memory[(this.i + i)];
+		}
+		pc += 2;
+	}
 }
