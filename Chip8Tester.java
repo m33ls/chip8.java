@@ -3,10 +3,10 @@ public class Chip8Tester
 	public static void assertEq(String testName, int actual, int expected)
 	{
 		if (actual == expected) {
-			System.out.println("[SUCCESS] Test." + testName + " " + actual + " == " + expected);
+			System.out.println("[SUCCESS]    Test." + testName + "    " + actual + " == " + expected);
 		} 
 		else {
-			System.out.println("[FAILED] Test." + testName + " " + actual + " != " + expected);
+			System.out.println("[FAILED]    Test." + testName + "    " + actual + " != " + expected);
 		}
 	}
 

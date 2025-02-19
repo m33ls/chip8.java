@@ -99,7 +99,14 @@ public class Chip8
 	 * 
 	 * @param Path to rom
 	 */
-	private void loadProgram() {}
+	private void loadProgram(String path) {}
+
+	/*
+	 * Load program into memory at 0x200 (512)
+	 *
+	 * @param Byte array to load (as int[])
+	 */
+	private void loadProgram(int[] bytes) {}
 
 	public void draw() {}
 
