@@ -1,10 +1,14 @@
 /*
+ * Emulate Chip8 processing
+ *
  * @author m33ls
  * @version 1.0.0
  */
 
 import java.util.Arrays;
 import java.util.Random;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 public class Chip8
 {
@@ -100,20 +104,122 @@ public class Chip8
 	 * 
 	 * @param Path to rom
 	 */
-	private void loadProgram(String path) {}
+	private void loadProgram(String path) {
+		try{ 
+			byte[] bytearray = Files.readAllBytes(Paths.get(path));
+			for (int i = 0; i < bytearray.length; i++) {
+
+				memory[i + 512] = bytearray[i];
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
 	/*
 	 * Load program into memory at 0x200 (512)
 	 *
 	 * @param Byte array to load (as int[])
 	 */
-	private void loadProgram(int[] bytes) {}
+	public void loadProgram(int[] bytearray) {
+		for (int i = 0; i < bytearray.length; i++) {
+			memory[i + 512] = bytearray[i];
+		}
+	}
 
+	/*
+	 * TODO
+	 */
 	public void draw() {}
 
-	private void log() {}
+	private void log(String call) {
+		System.out.println(pc + "    " + opcode + "    " + call);
+	}
 
-	public void emulateCycle() {}
+	/*
+	 * Fetch current opcode
+	 * @return opcode
+	 */
+	private int getOpcode() {
+		return (memory[pc] << 8 | memory[pc + 1]);
+	}
+
+	/*
+	 * Emulate one CPU cycle of the Chip8 processor
+	 * Get opcode, split into the appropriate variables
+	 * i.e. x, y, n, kk, and nnn
+	 * and then, call the appropriate function
+	 */
+	public void emulateCycle() {
+		opcode = getOpcode();
+
+		int nibble = (opcode & 0xF000) >> 16; // get first byte
+		int x = (opcode &  0x0F00) >> 8;      // get byte two
+		int y = (opcode & 0x00F0) >> 4;       // get byte three
+		int n = opcode & 0x000F;              // get byte four
+		int kk = opcode & 0x00FF;             // get last two bytes
+		int nnn = opcode & 0x0FFF;            // get last three bytes
+		
+		// switch statement to match opcode to function
+
+		switch (nibble) {
+			case 0x0000:
+				switch (kk) {
+					case 0xE0: op_00e0(); break;
+					case 0xEE: op_00ee(); break;
+				}
+				break;
+			case 0x1000: op_1nnn(nnn); break;
+			case 0x2000: op_2nnn(nnn); break;
+			case 0x3000: op_3xkk(x, kk); break;
+			case 0x4000: op_4xkk(x, kk); break;
+			case 0x5000: op_5xy0(x, y); break;
+			case 0x6000: op_6xkk(x, kk); break;
+			case 0x7000: op_7xkk(x, kk); break;
+			case 0x8000:
+				switch (n) {
+					case 0x0: op_8xy0(x, y); break;
+               				case 0x1: op_8xy1(x, y); break;
+                			case 0x2: op_8xy2(x, y); break;
+                			case 0x3: op_8xy3(x, y); break;
+                			case 0x4: op_8xy4(x, y); break;
+                			case 0x5: op_8xy5(x, y); break;
+                			case 0x6: op_8xy6(x, y); break;
+                			case 0x7: op_8xy7(x, y); break;
+                			case 0xE: op_8xye(x, y); break;
+				}
+				break;
+			case 0x9000: op_9xy0(x, y); break;
+			case 0xA000: op_annn(nnn); break;
+			case 0xB000: op_bnnn(nnn); break;
+			case 0xC000: op_cxkk(x, kk); break;
+			case 0xD000: op_dxyn(x, y, n); break;
+			case 0xE000:
+				switch (n) {
+					case 0xE: op_ex9e(x); break;
+					case 0x1: op_exa1(x); break;
+				}
+				break;
+			case 0xF000:
+				switch (n) {
+					case 0x7: op_fx07(x); break;
+					case 0xa: op_fx0a(x); break;
+					case 0x5: 
+						switch (y) {
+							case 0x1: op_fx15(x); break;
+							case 0x5: op_fx55(x); break;
+							case 0x6: op_fx65(x); break;
+						}
+						break;
+					case 0x8: op_fx18(x); break;
+					case 0xe: op_fx1e(x); break;
+					case 0x9: op_fx29(x); break;
+					case 0x3: op_fx33(x); break;
+				}
+				break;
+		}
+
+	}
 
 	/*
 	 * CLS
@@ -125,6 +231,7 @@ public class Chip8
 		}
 		draw_flag = true;
 		pc += 2;
+		log("CLS");
 	}
 	/*
 	 * RET
@@ -135,6 +242,7 @@ public class Chip8
 	private void op_00ee() {
 		sp -= 1;
 		pc = stack[sp];
+		log("RET");
 	}
 	/*
 	 * JP addr
@@ -144,6 +252,7 @@ public class Chip8
 	 */
 	private void op_1nnn(int nnn) {
 		pc = nnn;
+		log("JP addr");
 	}
 	/*
 	 * CALL addr
@@ -156,6 +265,7 @@ public class Chip8
 		stack[sp] = pc + 2;
 		sp += 1;
 		pc = nnn;
+		log("CALL addr");
 	}
 	/*
 	 * SE Vx, byte
@@ -171,6 +281,7 @@ public class Chip8
 		} else {
 			pc += 2;
 		}
+		log("SE Vx, byte");
 	}
 	/*
 	 * SNE Vx, byte
@@ -186,6 +297,7 @@ public class Chip8
 		} else {
 			pc += 2;
 		}
+		log("SNE Vx, byte");
 	}
 	/*
 	 * SE Vx, Vy
@@ -201,6 +313,7 @@ public class Chip8
 		} else {
 			pc += 2;
 		}
+		log("SE Vx, Vy");
 	}
 	/*
 	 * LD Vx, byte
@@ -212,6 +325,7 @@ public class Chip8
 	private void op_6xkk(int x, int kk) {
 		v[x] = kk;
 		pc += 2;
+		log("LD Vx, byte");
 	}
 	/*
 	 * ADD Vx, byte
@@ -224,6 +338,7 @@ public class Chip8
 	private void op_7xkk(int x, int kk) {
 		v[x] = v[x] + kk;
 		pc += 2;
+		log("ADD Vx, byte");
 	}
 	/*
 	 * LD Vx, Vy
@@ -235,6 +350,7 @@ public class Chip8
 	private void op_8xy0(int x, int y) {
 		v[x] = v[y];
 		pc += 2;
+		log("LD Vx, Vy");
 	}
 	/*
 	 * OR Vx, Vy
@@ -249,6 +365,7 @@ public class Chip8
 	private void op_8xy1(int x, int y) {
 		v[x] = v[x] | v[y];
 		pc += 2;
+		log("OR Vx, Vy");
 	}
 	/*
 	 * AND Vx, Vy
@@ -263,6 +380,7 @@ public class Chip8
 	private void op_8xy2(int x, int y) {
 		v[x] = v[x] & v[y];
 		pc += 2;
+		log("AND Vx, Vy");
 	}
 	/*
 	 * XOR Vx, Vy
@@ -278,6 +396,7 @@ public class Chip8
 	private void op_8xy3(int x, int y) {
 		v[x] = v[x] ^ v[y];
 		pc += 2;
+		log("XOR Vx, Vy");
 	}
 	/*
 	 * ADD Vx, Vy
@@ -298,6 +417,7 @@ public class Chip8
 			v[0xF] = 0;
 		}
 		pc += 2;
+		log("ADD Vx, Vy");
 	}
 	/*
 	 * SUB Vx, Vy
@@ -315,6 +435,7 @@ public class Chip8
 		}
 		v[x] -= v[y];
 		pc += 2;
+		log("SUB Vx, Vy");
 	}
 	/*
 	 * SHR Vx {, Vy}
@@ -328,6 +449,7 @@ public class Chip8
 		v[0xF] = v[x] & 1;
 		v[x] >>= 1;
 		pc += 2;
+		log("SHR Vx {, Vy}");
 	}
 	/*
 	 * SUBN Vx, Vy
@@ -345,6 +467,7 @@ public class Chip8
 		}
 		v[x] = v[y] - v[x];
 		pc += 2;
+		log("SUBN Vx, Vy");
 	}
 	/*
 	 * SHL Vx {, Vy}
@@ -358,6 +481,7 @@ public class Chip8
 		v[0xF] = (v[x] & 0x80) >> 7;
 		v[x] <<= 1;
 		pc += 2;
+		log("SHL VX {, Vy}");
 	}
 	/*
 	 * SNE Vx, Vy
@@ -373,6 +497,7 @@ public class Chip8
 		} else {
 			pc += 2;
 		}
+		log("SNE Vx, Vy");
 	}
 	/*
 	 * LD I, addr
@@ -383,6 +508,7 @@ public class Chip8
 	private void op_annn(int nnn) {
 		i = nnn;
 		pc += 2;
+		log("LD I, addr");
 	}
 	/*
 	 * JP V0, addr
@@ -392,6 +518,7 @@ public class Chip8
 	 */
 	private void op_bnnn(int nnn) {
 		pc = nnn + v[0];
+		log("JP V0, addr");
 	}
 	/*
 	 * RND Vx, byte
@@ -405,6 +532,7 @@ public class Chip8
 		Random random = new Random();
 		v[x] = random.nextInt(256) & kk;
 		pc += 2;
+		log("RND Vx, byte");
 	}
 	/*
 	 * DRW Vx, Vy, nibble
@@ -433,6 +561,7 @@ public class Chip8
 				gfx[dxyn_x][dxyn_y] ^= color;
 			}
 		}
+		log("DRW Vx, Vy, nibble");
 	}
 	/*
 	 * SKP Vx
@@ -447,6 +576,7 @@ public class Chip8
 		} else {
 			pc += 2;
 		}
+		log("SKP Vx");
 	}
 	/*
 	 * SKNP Vx
@@ -461,6 +591,7 @@ public class Chip8
 		} else {
 			pc += 2;
 		}
+		log("SKNP Vx");
 	}
 	/*
 	 * LD Vx, DT
@@ -471,6 +602,7 @@ public class Chip8
 	private void op_fx07(int x) {
 		v[x] = delay_timer;
 		pc += 2;
+		log("LD Vx, DT");
 	}
 	/*
 	 * LD Vx, K
@@ -491,6 +623,7 @@ public class Chip8
 		if (empty != true) {
 			pc += 2;
 		}
+		log("LD Vx, K");
 	}
 	/* 
 	 * LD DT, Vx
@@ -501,6 +634,7 @@ public class Chip8
 	private void op_fx15(int x) {
 		delay_timer = v[x];
 		pc += 2;
+		log("LD DT, Vx");
 	}
 	/*
 	 * LD ST, Vx
@@ -511,6 +645,7 @@ public class Chip8
 	private void op_fx18(int x) {
 		sound_timer = v[x];
 		pc += 2;
+		log("LD ST, Vx");
 	}
 	/*
 	 * ADD I, Vx
@@ -521,6 +656,7 @@ public class Chip8
 	private void op_fx1e(int x) {
 		i += v[x];
 		pc += 2;
+		log("ADD I, Vx");
 	}
 	/*
 	 * LD F, Vx
@@ -532,6 +668,7 @@ public class Chip8
 	private void op_fx29(int x) {
 		i = v[x] * 5;
 		pc += 2;
+		log("LD F, Vx");
 	}
 	/*
 	 * LD B, Vx
@@ -546,6 +683,7 @@ public class Chip8
 		memory[(i + 1)] = (v[x] / 10) % 10;
 		memory[(i + 2)] = (v[x] % 100) % 100;
 		pc += 2;
+		log("LD B, Vx");
 	}
 	/*
 	 * LD [I], Vx
@@ -559,6 +697,7 @@ public class Chip8
 			memory[this.i + i] = v[i];
 		}
 		pc += 2;
+		log("LD [I], Vx");
 	}
 	/*
 	 * LD Vx, [I]
@@ -572,5 +711,6 @@ public class Chip8
 			v[i] = memory[(this.i + i)];
 		}
 		pc += 2;
+		log("LD Vx, [I]");
 	}
 }
