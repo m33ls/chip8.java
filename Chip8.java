@@ -114,38 +114,157 @@ public class Chip8
 
 	public void emulateCycle() {}
 
+	/*
+	 * CLS
+	 * Clear the display.
+	 */
 	private void op_00e0() {}
+	/*
+	 * RET
+	 * Return from a subroutine.
+	 * The interpreter sets the program counter to the address at the top of the stack, then subtracts 1 from the stack pointer.
+	 */
 	private void op_00ee() {}
-	private void op_1nnn() {}
+	/*
+	 * JP addr
+	 * Jump to the location nnn.
+	 * The interpreter sets the program counter to nnn.
+	 */
+	private void op_1nnn(int nnn) {}
+	/*
+	 * CALL addr
+	 * Call subroutine at nnn.
+	 * The interpreter increments the stack pointer, then puts the current PC on the top of the stack. The PC is then set to nnn.
+	 */
 	private void op_2nnn(int nnn) {}
+	/*
+	 * SE Vx, byte
+	 * Skip next instruction if Vx = kk.
+	 * The interpreter compares register Vx to kk, and if they are equal, increments the program counter by 2.
+	 */
 	private void op_3xkk(int x, int kk) {}
+	/*
+	 * SNE Vx, byte
+	 * Skip next instruction if Vx != kk.
+	 * The interpreter compares register Vx to kk, and if they are not equal, increments the program counter by 2.
+	 */
 	private void op_4xkk(int x, int kk) {}
+	/*
+	 * SE Vx, Vy
+	 * Skip next instruction if Vx = Vy.
+	 * The interpreter compares register Vx to register Vy, and if they are equal, increments the program counter by 2.
+	 */
 	private void op_5xy0(int x, int y) {}
+	/*
+	 * LD Vx, byte
+	 * Set Vx = kk.
+	 * The interpreter puts the value kk into register Vx.
+	 */
 	private void op_6xkk(int x, int kk) {}
+	/*
+	 * ADD Vx, byte
+	 * Set Vx = Vx + kk.
+	 * Adds the value kk to the value of register Vx, then stores the result in Vx.
+	 */
 	private void op_7xkk(int x, int kk) {}
+	/*
+	 * LD Vx, Vy
+	 */
 	private void op_8xy0(int x, int y) {}
+	/*
+	 * OR Vx, Vy
+	 */
 	private void op_8xy1(int x, int y) {}
+	/*
+	 * AND Vx, Vy
+	 */
 	private void op_8xy2(int x, int y) {}
+	/*
+	 * XOR Vx, Vy
+	 */
 	private void op_8xy3(int x, int y) {}
+	/*
+	 * ADD Vx, Vy
+	 */
 	private void op_8xy4(int x, int y) {}
+	/*
+	 * SUB Vx, Vy
+	 */
 	private void op_8xy5(int x, int y) {}
+	/*
+	 * SHR Vx {, Vy}
+	 */
 	private void op_8xy6(int x, int y) {}
+	/*
+	 * SUBN Vx, Vy
+	 */
 	private void op_8xy7(int x, int y) {}
+	/*
+	 * SHL Vx {, Vy}
+	 */
 	private void op_8xye(int x, int y) {}
+	/*
+	 * SNE Vx, Vy
+	 */
 	private void op_9xy0(int x, int y) {}
+	/*
+	 * LD I, addr
+	 */
 	private void op_annn(int nnn) {}
+	/*
+	 * JP V0, addr
+	 */
 	private void op_bnnn(int nnn) {}
+	/*
+	 * RND Vx, byte
+	 */
 	private void op_cxkk(int x, int kk) {}
+	/*
+	 * DRW Vx, Vy, nibble
+	 */
 	private void op_dxyn(int x, int y, int n) {}
+	/*
+	 * SKP Vx
+	 */
 	private void op_ex9e(int x) {}
+	/*
+	 * SKNP Vx
+	 */
 	private void op_exa1(int x) {}
+	/*
+	 * LD Vx, DT
+	 */
 	private void op_fx07(int x) {}
+	/*
+	 * LD Vx, K
+	 */
 	private void op_fx0a(int x) {}
+	/* 
+	 * LD DT, Vx
+	 */
 	private void op_fx15(int x) {}
+	/*
+	 * LD ST, Vx
+	 */
 	private void op_fx18(int x) {}
+	/*
+	 * ADD I, Vx
+	 */
 	private void op_fx1e(int x) {}
+	/*
+	 * LD F, Vx
+	 */
 	private void op_fx29(int x) {}
+	/*
+	 * LD B, Vx
+	 */
 	private void op_fx33(int x) {}
+	/*
+	 * LD [I], Vx
+	 */
 	private void op_fx55(int x) {}
+	/*
+	 * LD Vx, [I]
+	 */
 	private void op_fx65(int x) {}
 }
