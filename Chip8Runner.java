@@ -9,7 +9,7 @@ public class Chip8Runner
 
 		myChip8.setLogging(false);
 		myChip8.loadFontset();
-		myChip8.loadProgram("ibm-logo.ch8");
+		myChip8.loadProgram(args[0]);
 		myChip8.initializeDisplay(myChip8.gfx);
 
 		while (true) {

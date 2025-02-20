@@ -4,17 +4,18 @@ Chip8 emulator rewrite in Java
 
 ## Build
 ```sh
-javac Pixels.java
-javac Chip8.java
-javac Chip8Runner.java
-javac Chip8Tester.java
+javac *.java
 ```
 
 ## Run
 
 Run normally
 ```sh
-java Chip8Runner
+java Chip8Runner <Path to ROM.ch8>
+```
+for example:
+```sh
+java Chip8Runner ibm-logo.ch8
 ```
 
 Run tests
