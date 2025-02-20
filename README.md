@@ -6,6 +6,8 @@ This is a rewrite of my Chip8 emulator to practice Java.
 
 ## Build
 ```
+git clone https://github.com/m33ls/chip8.java.git
+cd chip8.java
 javac *.java
 ```
 
@@ -17,7 +19,7 @@ java Chip8Runner <Path to ROM.ch8>
 ```
 for example:
 ```
-java Chip8Runner ibm-logo.ch8
+java Chip8Runner roms/ibm-logo.ch8
 ```
 
 Run tests
