@@ -1,3 +1,10 @@
+/*
+ * Test the Chip8 class
+ *
+ * @author m33ls
+ * @version 1.0.0
+ */
+
 public class Chip8Tester
 {
 	// If quiet mode enabled, only print on fail
@@ -49,6 +56,12 @@ public class Chip8Tester
 		for (int i = 0; i < loadProgramBytesTest.length; i++) {
 			assertEq("myChip8.loadProgram(int[] bytearray)", myChip8.memory[i+512], loadProgramBytesTest[i]);
 		}
+
+		// Test loading program from path
+		myChip8.loadProgram("ibm-logo.ch8");
+		myChip8.emulateCycle();
+		myChip8.emulateCycle();
+		myChip8.emulateCycle();
 
 	}
 }

@@ -1,15 +1,21 @@
-/*
- * Emulate Chip8 processing
- *
- * @author m33ls
- * @version 1.0.0
- */
-
 import java.util.Arrays;
 import java.util.Random;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import javax.swing.*;
 
+/*
+ *       __    __       ______ 
+ * .----|  |--|__.-----|  __  |
+ * |  __|     |  |  _  |  __  |
+ * |____|__|__|__|   __|______|
+ *               |__|
+ * 
+ * Emulate Chip8 programs in Java
+ *
+ * @author m33ls
+ * @version 1.0.0
+ */
 public class Chip8
 {
 	/*
@@ -28,6 +34,10 @@ public class Chip8
 	int[][] gfx = new int[32][64]; // gfx[rows][columns] or gfx[x][y]
 	int[] stack = new int[16];     // (opposite of rust: gfx[y][x])
 	boolean draw_flag;
+
+	Pixels screen;
+
+	boolean logging;
 
 	/*
 	 * Create a new Chip8 instance with default values
@@ -104,8 +114,8 @@ public class Chip8
 	 * 
 	 * @param Path to rom
 	 */
-	private void loadProgram(String path) {
-		try{ 
+	public void loadProgram(String path) {
+		try { 
 			byte[] bytearray = Files.readAllBytes(Paths.get(path));
 			for (int i = 0; i < bytearray.length; i++) {
 
@@ -114,6 +124,15 @@ public class Chip8
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	/*
+	 * Set logging option
+	 *
+	 * @param boolean true or false
+	 */
+	public void setLogging(boolean bool) {
+		logging = bool;
 	}
 
 	/*
@@ -128,12 +147,31 @@ public class Chip8
 	}
 
 	/*
-	 * TODO
+	 * Initialize display
+	 * @param graphics array
 	 */
-	public void draw() {}
+	public void initializeDisplay(int[][] gfx){
+        	JFrame f = new JFrame("Chip8");
+        	f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        	screen = new Pixels(gfx);
+        	f.add(screen);
+        	f.pack();
+        	f.setVisible(true);
+
+    	}
+
+	/*
+	 * Draw to screen
+	 */
+	public void draw() {
+		screen.drawScreen();
+		draw_flag = false;
+	}
 
 	private void log(String call) {
-		System.out.println(pc + "    " + opcode + "    " + call);
+		if (logging) {
+			System.out.printf("%04x    %04x    %s\n", pc, (opcode & 0xFFFF), call);
+		}
 	}
 
 	/*
@@ -141,7 +179,7 @@ public class Chip8
 	 * @return opcode
 	 */
 	private int getOpcode() {
-		return (memory[pc] << 8 | memory[pc + 1]);
+		return (memory[pc] << 8 | (memory[pc + 0x1] & 0x00FF));
 	}
 
 	/*
@@ -153,30 +191,35 @@ public class Chip8
 	public void emulateCycle() {
 		opcode = getOpcode();
 
-		int nibble = (opcode & 0xF000) >> 16; // get first byte
+
+		int nibble = (opcode & 0xF000) >> 12; // get first byte
 		int x = (opcode &  0x0F00) >> 8;      // get byte two
 		int y = (opcode & 0x00F0) >> 4;       // get byte three
 		int n = opcode & 0x000F;              // get byte four
 		int kk = opcode & 0x00FF;             // get last two bytes
 		int nnn = opcode & 0x0FFF;            // get last three bytes
-		
-		// switch statement to match opcode to function
 
+		// Debug opcode
+		// System.out.printf("Opcode: %#04x\n", opcode);
+		// System.out.printf("Nibble: %01x\nX: %01x\nY: %01x\nN: %01x\n", nibble, x, y, n);
+		// System.out.printf("KK: %02x\nNNN: %03x\n", kk, nnn);
+		
+		// Switch statement to match opcode to function
 		switch (nibble) {
-			case 0x0000:
+			case 0x0:
 				switch (kk) {
 					case 0xE0: op_00e0(); break;
 					case 0xEE: op_00ee(); break;
 				}
 				break;
-			case 0x1000: op_1nnn(nnn); break;
-			case 0x2000: op_2nnn(nnn); break;
-			case 0x3000: op_3xkk(x, kk); break;
-			case 0x4000: op_4xkk(x, kk); break;
-			case 0x5000: op_5xy0(x, y); break;
-			case 0x6000: op_6xkk(x, kk); break;
-			case 0x7000: op_7xkk(x, kk); break;
-			case 0x8000:
+			case 0x1: op_1nnn(nnn); break;
+			case 0x2: op_2nnn(nnn); break;
+			case 0x3: op_3xkk(x, kk); break;
+			case 0x4: op_4xkk(x, kk); break;
+			case 0x5: op_5xy0(x, y); break;
+			case 0x6: op_6xkk(x, kk); break;
+			case 0x7: op_7xkk(x, kk); break;
+			case 0x8:
 				switch (n) {
 					case 0x0: op_8xy0(x, y); break;
                				case 0x1: op_8xy1(x, y); break;
@@ -189,18 +232,18 @@ public class Chip8
                 			case 0xE: op_8xye(x, y); break;
 				}
 				break;
-			case 0x9000: op_9xy0(x, y); break;
-			case 0xA000: op_annn(nnn); break;
-			case 0xB000: op_bnnn(nnn); break;
-			case 0xC000: op_cxkk(x, kk); break;
-			case 0xD000: op_dxyn(x, y, n); break;
-			case 0xE000:
+			case 0x9: op_9xy0(x, y); break;
+			case 0xA: op_annn(nnn); break;
+			case 0xB: op_bnnn(nnn); break;
+			case 0xC: op_cxkk(x, kk); break;
+			case 0xD: op_dxyn(x, y, n); break;
+			case 0xE:
 				switch (n) {
 					case 0xE: op_ex9e(x); break;
 					case 0x1: op_exa1(x); break;
 				}
 				break;
-			case 0xF000:
+			case 0xF:
 				switch (n) {
 					case 0x7: op_fx07(x); break;
 					case 0xa: op_fx0a(x); break;
@@ -557,10 +600,12 @@ public class Chip8
 			for (int bit = 0; bit < 8; bit++) {
 				int dxyn_x = (v[x] + bit) % 64;
 				int color = (memory[(i + bytevar)] >> (7 - bit)) & 1;
-				v[0xF] |= color & gfx[dxyn_x][dxyn_y];
-				gfx[dxyn_x][dxyn_y] ^= color;
+				v[0xF] |= color & gfx[dxyn_y][dxyn_x];
+				gfx[dxyn_y][dxyn_x] ^= color;
 			}
 		}
+		draw_flag = true;
+		pc += 2;
 		log("DRW Vx, Vy, nibble");
 	}
 	/*
