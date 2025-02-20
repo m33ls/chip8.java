@@ -1,25 +1,27 @@
-# chip8.java
+![Screenshot](/screenshot.png?raw=true "Space Invaders")
 
-Chip8 emulator rewrite in Java
+## About
+
+This is a rewrite of my Chip8 emulator to practice Java.
 
 ## Build
-```sh
+```
 javac *.java
 ```
 
 ## Run
 
 Run normally
-```sh
+```
 java Chip8Runner <Path to ROM.ch8>
 ```
 for example:
-```sh
+```
 java Chip8Runner ibm-logo.ch8
 ```
 
 Run tests
-```sh
+```
 java Chip8Tester
 ```
 
