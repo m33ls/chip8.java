@@ -29,13 +29,13 @@ public class Chip8
 	int delay_timer;
 	int sound_timer;
 	int[] v = new int[16];
-	int[] key = new int[16];
 	int[] memory = new int[4096];		
 	int[][] gfx = new int[32][64]; // gfx[rows][columns] or gfx[x][y]
 	int[] stack = new int[16];     // (opposite of rust: gfx[y][x])
 	boolean draw_flag;
 
 	Pixels screen;
+	Keyboard keyboard;
 
 	boolean logging;
 
@@ -56,13 +56,14 @@ public class Chip8
 		sound_timer = 0;
 		Arrays.fill(stack, 0);
 		sp = 0;
-		Arrays.fill(key, 0);
 		draw_flag = false;
 		
 		// iterate over rows and fill
 		for (int i = 0; i < gfx.length; i++) {
 			Arrays.fill(gfx[i], 0);
 		}
+
+		keyboard = new Keyboard();
 	}
 
 	/*
@@ -190,7 +191,6 @@ public class Chip8
 	 */
 	public void emulateCycle() {
 		opcode = getOpcode();
-
 
 		int nibble = (opcode & 0xF000) >> 12; // get first byte
 		int x = (opcode &  0x0F00) >> 8;      // get byte two
@@ -616,7 +616,7 @@ public class Chip8
 	 * @param x
 	 */
 	private void op_ex9e(int x) {
-		if (key[v[x]] == 1) {
+		if (keyboard.getKeys()[v[x]] == true) {
 			pc += 4;
 		} else {
 			pc += 2;
@@ -631,7 +631,7 @@ public class Chip8
 	 * @param x
 	 */
 	private void op_exa1(int x) {
-		if (key[v[x]] != 1) {
+		if (keyboard.getKeys()[v[x]] == false) {
 			pc += 4;
 		} else {
 			pc += 2;
@@ -657,17 +657,13 @@ public class Chip8
 	 * @param x
 	 */
 	private void op_fx0a(int x) {
-		boolean empty = true;
 		for (int i = 0; i < 15; i++) {
-			if (key[i] != 0) {
+			if (keyboard.getKeys()[i] != false) {
 				v[x] = i;
-				empty = false;
+				pc += 2;
 			}
 		}
 
-		if (empty != true) {
-			pc += 2;
-		}
 		log("LD Vx, K");
 	}
 	/* 

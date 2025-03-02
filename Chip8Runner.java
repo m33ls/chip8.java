@@ -7,7 +7,7 @@ public class Chip8Runner
 	{
 		Chip8 myChip8 = new Chip8();
 
-		myChip8.setLogging(true);
+		myChip8.setLogging(false);
 		myChip8.loadFontset();
 		myChip8.loadProgram(args[0]);
 		myChip8.initializeDisplay(myChip8.gfx);
