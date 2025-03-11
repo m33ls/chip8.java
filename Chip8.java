@@ -379,7 +379,7 @@ public class Chip8
 	 * @param kk
 	 */
 	private void op_7xkk(int x, int kk) {
-		v[x] = v[x] + kk;
+		v[x] += kk;
 		pc += 2;
 		log("ADD Vx, byte");
 	}
@@ -406,7 +406,7 @@ public class Chip8
 	 * @param y
 	 */
 	private void op_8xy1(int x, int y) {
-		v[x] = v[x] | v[y];
+		v[x] |= v[y];
 		pc += 2;
 		log("OR Vx, Vy");
 	}
@@ -421,7 +421,7 @@ public class Chip8
 	 * @param y
 	 */
 	private void op_8xy2(int x, int y) {
-		v[x] = v[x] & v[y];
+		v[x] &= v[y];
 		pc += 2;
 		log("AND Vx, Vy");
 	}
@@ -437,7 +437,7 @@ public class Chip8
 	 * @param y
 	 */
 	private void op_8xy3(int x, int y) {
-		v[x] = v[x] ^ v[y];
+		v[x] ^= v[y];
 		pc += 2;
 		log("XOR Vx, Vy");
 	}
@@ -535,7 +535,7 @@ public class Chip8
 	 * @param y
 	 */
 	private void op_9xy0(int x, int y) {
-		if (v[x] != v[y] >> 4) {
+		if (v[x] != v[y]) {
 			pc += 4;
 		} else {
 			pc += 2;
@@ -721,8 +721,8 @@ public class Chip8
 	 */
 	private void op_fx33(int x) {
 		memory[i] = v[x] / 100;
-		memory[(i + 1)] = (v[x] / 10) % 10;
-		memory[(i + 2)] = (v[x] % 100) % 100;
+		memory[(i + 1)] = (v[x] % 100) / 10;
+		memory[(i + 2)] = (v[x] % 10);
 		pc += 2;
 		log("LD B, Vx");
 	}
@@ -734,7 +734,7 @@ public class Chip8
 	 * @param x
 	 */
 	private void op_fx55(int x) {
-		for (int i = 0; i < x; i++) {
+		for (int i = 0; i < x + 1; i++) {
 			memory[this.i + i] = v[i];
 		}
 		pc += 2;
@@ -748,7 +748,7 @@ public class Chip8
 	 * @param x
 	 */
 	private void op_fx65(int x) {
-		for (int i = 0; i < x; i++) {
+		for (int i = 0; i < x + 1; i++) {
 			v[i] = memory[(this.i + i)];
 		}
 		pc += 2;
